@@ -138,7 +138,7 @@ define(function (require, exports, module) {
         var readyToServeDeferred = $.Deferred(),
             self = this;
 
-        if (_nodeConnection.connected()) {
+        if (_nodeConnection.connected() && _nodeConnection.domains.staticServer) {
             self.root = ProjectManager.getProjectRoot().fullPath;
 
             _nodeConnection.domains.staticServer.getServer(self.root).done(function (address) {

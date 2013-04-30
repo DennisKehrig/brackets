@@ -102,6 +102,7 @@ define(function (require, exports, module) {
     
     // Dependencies
     var Async                 = require("utils/Async"),
+        ValidationUtils       = require("utils/ValidationUtils"),
         _defaultLanguagesJSON = require("text!language/languages.json");
     
     
@@ -112,33 +113,10 @@ define(function (require, exports, module) {
         _fileExtensionToLanguageMap = {},
         _fileNameToLanguageMap      = {},
         _modeToLanguageMap          = {},
-        _ready;
+        ready;
+    
     
     // Helper functions
-    
-    /**
-     * Checks whether value is a non-empty string. Reports an error otherwise.
-     * If no deferred is passed, console.error is called.
-     * Otherwise the deferred is rejected with the error message.
-     * @param {*}                value         The value to validate
-     * @param {!string}          description   A helpful identifier for value
-     * @param {?jQuery.Deferred} deferred      A deferred to reject with the error message in case of an error
-     * @return {boolean} True if the value is a non-empty string, false otherwise
-     */
-    function _validateNonEmptyString(value, description, deferred) {
-        var reportError = deferred ? deferred.reject : console.error;
-        
-        // http://stackoverflow.com/questions/1303646/check-whether-variable-is-number-or-string-in-javascript
-        if (Object.prototype.toString.call(value) !== "[object String]") {
-            reportError(description + " must be a string");
-            return false;
-        }
-        if (value === "") {
-            reportError(description + " must not be empty");
-            return false;
-        }
-        return true;
-    }
     
     /**
      * Monkey-patch CodeMirror to prevent modes from being overwritten by extensions.
@@ -173,7 +151,7 @@ define(function (require, exports, module) {
     /**
      * Resolves a language ID to a Language object.
      * File names have a higher priority than file extensions. 
-     * @param {!string} id Identifier for this language, use only letters a-z or digits 0-9 and _ inbetween (i.e. "cpp", "foo_bar", "c99")
+     * @param {!string} id Identifier for this language, use only letters a-z or digits 0-9 and _ inbetween (e.g. "cpp", "foo_bar", "c99")
      * @return {Language} The language with the provided identifier or undefined
      */
     function getLanguage(id) {
@@ -283,6 +261,7 @@ define(function (require, exports, module) {
         this._fileNames         = [];
         this._modeToLanguageMap = {};
         this._lineCommentSyntax = [];
+        this._compilers         = {};
     }
     
     
@@ -309,6 +288,9 @@ define(function (require, exports, module) {
     
     /** @type {{ prefix: string, suffix: string }} Block comment syntax */
     Language.prototype._blockCommentSyntax = null;
+
+    /** @type {Object.<string,Array>} List of compilers per target language */
+    Language.prototype._compilers = null;
     
     /**
      * Returns the identifier for this language.
@@ -320,11 +302,11 @@ define(function (require, exports, module) {
     
     /**
      * Sets the identifier for this language or prints an error to the console.
-     * @param {!string} id Identifier for this language, use only letters a-z or digits 0-9, and _ inbetween (i.e. "cpp", "foo_bar", "c99")
+     * @param {!string} id Identifier for this language, use only letters a-z or digits 0-9, and _ inbetween (e.g. "cpp", "foo_bar", "c99")
      * @return {boolean} Whether the ID was valid and set or not
      */
     Language.prototype._setId = function (id) {
-        if (!_validateNonEmptyString(id, "Language ID")) {
+        if (!ValidationUtils.validateNonEmptyString(id, "Language ID")) {
             return false;
         }
         // Make sure the ID is a string that can safely be used universally by the computer - as a file name, as an object key, as part of a URL, etc.
@@ -348,11 +330,11 @@ define(function (require, exports, module) {
     
     /**
      * Sets the human-readable name of this language or prints an error to the console.
-     * @param {!string} name Human-readable name of the language, as it's commonly referred to (i.e. "C++")
+     * @param {!string} name Human-readable name of the language, as it's commonly referred to (e.g. "C++")
      * @return {boolean} Whether the name was valid and set or not
      */
     Language.prototype._setName = function (name) {
-        if (!_validateNonEmptyString(name, "name")) {
+        if (!ValidationUtils.validateNonEmptyString(name, "name")) {
             return false;
         }
         
@@ -371,7 +353,7 @@ define(function (require, exports, module) {
     /**
      * Loads a mode and sets it for this language.
      * 
-     * @param {string|Array.<string>} mode            CodeMirror mode (i.e. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
+     * @param {string|Array.<string>} mode            CodeMirror mode (e.g. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
      *                                                Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
      *
      * @return {$.Promise} A promise object that will be resolved when the mode is loaded and set
@@ -391,7 +373,7 @@ define(function (require, exports, module) {
         }
         
         // mode must not be empty. Use "null" (the string "null") mode for plain text
-        if (!_validateNonEmptyString(mode, "mode", result)) {
+        if (!ValidationUtils.validateNonEmptyString(mode, "mode", result)) {
             result.reject();
             return result.promise();
         }
@@ -523,7 +505,7 @@ define(function (require, exports, module) {
     /**
      * Sets the prefixes to use for line comments in this language or prints an error to the console.
      * @param {!string|Array.<string>} prefix Prefix string or and array of prefix strings
-     *   to use for line comments (i.e. "//" or ["//", "#"])
+     *   to use for line comments (e.g. "//" or ["//", "#"])
      * @return {boolean} Whether the syntax was valid and set or not
      */
     Language.prototype.setLineCommentSyntax = function (prefix) {
@@ -533,9 +515,9 @@ define(function (require, exports, module) {
         if (prefixes.length) {
             this._lineCommentSyntax = [];
             for (i = 0; i < prefixes.length; i++) {
-                _validateNonEmptyString(String(prefixes[i]), Array.isArray(prefix) ? "prefix[" + i + "]" : "prefix");
-                
-                this._lineCommentSyntax.push(prefixes[i]);
+                if (ValidationUtils.validateNonEmptyString(String(prefixes[i]), Array.isArray(prefix) ? "prefix[" + i + "]" : "prefix")) {
+                    this._lineCommentSyntax.push(prefixes[i]);
+                }
             }
             this._wasModified();
         } else {
@@ -576,7 +558,7 @@ define(function (require, exports, module) {
      * @return {boolean} Whether the syntax was valid and set or not
      */
     Language.prototype.setBlockCommentSyntax = function (prefix, suffix) {
-        if (!_validateNonEmptyString(prefix, "prefix") || !_validateNonEmptyString(suffix, "suffix")) {
+        if (!ValidationUtils.validateNonEmptyString(prefix, "prefix") || !ValidationUtils.validateNonEmptyString(suffix, "suffix")) {
             return false;
         }
         
@@ -637,17 +619,52 @@ define(function (require, exports, module) {
             _triggerLanguageModified(this);
         }
     };
-    
+
+    Language.prototype.addCompiler = function (languageId, compiler) {
+        if (languageId instanceof Language) {
+            languageId = languageId.getId();
+        }
+        if (!_languages[languageId]) {
+            console.error("Invalid language ID", languageId);
+            return;
+        }
+
+        if (!this._compilers[languageId]) {
+            this._compilers[languageId] = [];
+        }
+
+        this._compilers[languageId].push(compiler);
+    };
+
+    Language.prototype.getCompilersToLanguage = function(languageId) {
+        if (languageId instanceof Language) {
+            languageId = languageId.getId();
+        }
+        if (!_languages[languageId]) {
+            console.error("Invalid language ID", languageId);
+            return [];
+        }
+
+        // Return a copy of the array
+        return (this._compilers[languageId] || []).concat();
+    };
+
+    Language.prototype.getCompilerToLanguage = function(languageId) {
+        var compilers = this.getCompilersToLanguage(languageId);
+        return compilers[0];
+    };
+
+
     /**
      * Defines a language.
      *
-     * @param {!string}               id                        Unique identifier for this language, use only letters a-z or digits 0-9, and _ inbetween (i.e. "cpp", "foo_bar", "c99")
+     * @param {!string}               id                        Unique identifier for this language, use only letters a-z or digits 0-9, and _ inbetween (e.g. "cpp", "foo_bar", "c99")
      * @param {!Object}               definition                An object describing the language
-     * @param {!string}               definition.name           Human-readable name of the language, as it's commonly referred to (i.e. "C++")
-     * @param {Array.<string>}        definition.fileExtensions List of file extensions used by this language (i.e. ["php", "php3"])
-     * @param {Array.<string>}        definition.blockComment   Array with two entries defining the block comment prefix and suffix (i.e. ["<!--", "-->"])
-     * @param {string|Array.<string>} definition.lineComment    Line comment prefixes (i.e. "//" or ["//", "#"])
-     * @param {string|Array.<string>} definition.mode           CodeMirror mode (i.e. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
+     * @param {!string}               definition.name           Human-readable name of the language, as it's commonly referred to (e.g. "C++")
+     * @param {Array.<string>}        definition.fileExtensions List of file extensions used by this language (e.g. ["php", "php3"])
+     * @param {Array.<string>}        definition.blockComment   Array with two entries defining the block comment prefix and suffix (e.g. ["<!--", "-->"])
+     * @param {string|Array.<string>} definition.lineComment    Line comment prefixes (e.g. "//" or ["//", "#"])
+     * @param {string|Array.<string>} definition.mode           CodeMirror mode (e.g. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
      *                                                          Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
      *
      * @return {$.Promise} A promise object that will be resolved with a Language object
@@ -734,12 +751,12 @@ define(function (require, exports, module) {
  
     // Load the default languages
     _defaultLanguagesJSON = JSON.parse(_defaultLanguagesJSON);
-    _ready = Async.doInParallel(Object.keys(_defaultLanguagesJSON), function (key) {
+    ready = Async.doInParallel(Object.keys(_defaultLanguagesJSON), function (key) {
         return defineLanguage(key, _defaultLanguagesJSON[key]);
     }, false);
     
     // Get the object for HTML
-    _ready.always(function () {
+    ready.always(function () {
         var html = getLanguage("html");
         
         // The htmlmixed mode uses the xml mode internally for the HTML parts, so we map it to HTML
@@ -755,7 +772,7 @@ define(function (require, exports, module) {
     });
     
     // Public methods
-    exports.ready                   = _ready;
+    exports.ready                   = ready;
     exports.defineLanguage          = defineLanguage;
     exports.getLanguage             = getLanguage;
     exports.getLanguageForPath      = getLanguageForPath;

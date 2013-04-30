@@ -571,22 +571,27 @@ define(function LiveDevelopment(require, exports, module) {
         // a doc and the server for that doc is up and running.
         function doLaunchAfterServerReady() {
             _setStatus(STATUS_CONNECTING);
-            
+
+            var relativePath;
+
             if (_serverProvider) {
+                HTMLInstrumentation.scanDocument(doc);
+                
                 // Install a request filter for the current document. In the future,
                 // we need to install filters for *all* files that need to be instrumented.
-                HTMLInstrumentation.scanDocument(doc);
-                _serverProvider.setRequestFilterPaths(
-                    ["/" + ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)]
-                );
+                relativePath = "/" + ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath);
+                _serverProvider.setRequestFilterPaths([relativePath]);
                 
                 // Remove any "request" listeners that were added previously
                 $(_serverProvider).off(".livedev");
                 
                 $(_serverProvider).on("request.livedev", function (event, request) {
-                    var html = HTMLInstrumentation.generateInstrumentedHTML(doc);
-                    
-                    request.send({ body: html });
+                    if (request.location.pathname === relativePath) {
+                        console.log("Serving main doc");
+                        var html = HTMLInstrumentation.generateInstrumentedHTML(doc);
+                        
+                        request.send({ body: html });
+                    }
                 });
             }
 

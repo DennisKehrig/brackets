@@ -60,6 +60,7 @@ define(function (require, exports, module) {
     var Global                  = require("utils/Global"),
         AppInit                 = require("utils/AppInit"),
         LanguageManager         = require("language/LanguageManager"),
+        ClientManager           = require("LiveDevelopment/ClientManager"),
         ProjectManager          = require("project/ProjectManager"),
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
@@ -184,8 +185,10 @@ define(function (require, exports, module) {
             $testDiv.remove();
         }
 
-        // Load default languages
-        LanguageManager.ready.always(function () {
+
+
+        // Load default languages and live development clients
+        $.when([LanguageManager.ready, ClientManager.ready]).always(function () {
             // Load all extensions. This promise will complete even if one or more
             // extensions fail to load.
             var extensionLoaderPromise = ExtensionLoader.init(params.get("extensions"));
