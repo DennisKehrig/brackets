@@ -30,8 +30,6 @@
  */
 define(function (require, exports, module) {
     "use strict";
-
-    var LanguageManager = require("language/LanguageManager");
     
     /**
      * Appends a <style> tag to the document's head.
