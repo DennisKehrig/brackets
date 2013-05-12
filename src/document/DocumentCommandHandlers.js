@@ -87,7 +87,7 @@ define(function (require, exports, module) {
         
             // Set _$titleWrapper to a fixed width just large enough to accomodate _$title. This seems equivalent to what
             // the browser would do automatically, but the CSS trick we use for layout requires _$titleWrapper to have a
-            // fixed width set on it (see the "#main-toolbar.toolbar" CSS rule for details).
+            // fixed width set on it (see the "#titlebar" CSS rule for details).
             _$titleWrapper.css("width", "");
             var newWidth = _$title.width();
             _$titleWrapper.css("width", newWidth);
@@ -387,7 +387,7 @@ define(function (require, exports, module) {
             Strings.ERROR_SAVING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_SAVING_FILE,
-                StringUtils.htmlEscape(path),
+                StringUtils.breakableUrl(path),
                 FileUtils.getFileErrorString(name)
             )
         );
@@ -576,7 +576,10 @@ define(function (require, exports, module) {
             Dialogs.showModalDialog(
                 Dialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
-                StringUtils.format(Strings.SAVE_CLOSE_MESSAGE, StringUtils.htmlEscape(filename))
+                StringUtils.format(
+                    Strings.SAVE_CLOSE_MESSAGE,
+                    StringUtils.breakableUrl(filename)
+                )
             ).done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_CANCEL) {
                     result.reject();
@@ -660,7 +663,7 @@ define(function (require, exports, module) {
             message += "<ul>";
             unsavedDocs.forEach(function (doc) {
                 message += "<li><span class='dialog-filename'>" +
-                    StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)) +
+                    StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)) +
                     "</span></li>";
             });
             message += "</ul>";
@@ -839,7 +842,7 @@ define(function (require, exports, module) {
     
     // Init DOM elements
     AppInit.htmlReady(function () {
-        var $titleContainerToolbar = $("#main-toolbar");
+        var $titleContainerToolbar = $("#titlebar");
         _$titleContainerToolbar = $titleContainerToolbar;
         _$titleWrapper = $(".title-wrapper", _$titleContainerToolbar);
         _$title = $(".title", _$titleWrapper);

@@ -53,6 +53,7 @@ define(function (require, exports, module) {
     // Load dependent non-module scripts
     require("widgets/bootstrap-dropdown");
     require("widgets/bootstrap-modal");
+    require("widgets/bootstrap-twipsy-mod");
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
     
@@ -106,6 +107,7 @@ define(function (require, exports, module) {
     require("search/FindInFiles");
     require("search/FindReplace");
     require("extensibility/InstallExtensionDialog");
+    require("extensibility/ExtensionManagerDialog");
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
@@ -259,6 +261,13 @@ define(function (require, exports, module) {
     function _beforeHTMLReady() {
         // Add the platform (mac or win) to the body tag so we can have platform-specific CSS rules
         $("body").addClass("platform-" + brackets.platform);
+        
+        // Browser-hosted version may also have different CSS (e.g. since '#titlebar' is shown)
+        if (brackets.inBrowser) {
+            $("body").addClass("in-browser");
+        } else {
+            $("body").addClass("in-appshell");
+        }
         
         // Localize MainViewHTML and inject into <BODY> tag
         $("body").html(Mustache.render(MainViewHTML, Strings));

@@ -39,7 +39,7 @@
  *         mode: "haskell",
  *         fileExtensions: ["hs"],
  *         blockComment: ["{-", "-}"],
- *         lineComment: "--"
+ *         lineComment: ["--"]
  *     });
  *
  * To use that language and its related mode, wait for the returned promise to be resolved:
@@ -64,8 +64,8 @@
  *
  * You can also refine an existing language. Currently you can only set the comment styles:
  *     var language = LanguageManager.getLanguage("haskell");
- *     language.setLineComment("--");
- *     language.setBlockComment("{-", "-}");
+ *     language.setLineCommentSyntax(["--"]);
+ *     language.setBlockCommentSyntax("{-", "-}");
  *
  * Some CodeMirror modes define variations of themselves. They are called MIME modes.
  * To find existing MIME modes, search for "CodeMirror.defineMIME" in thirdparty/CodeMirror2/mode
@@ -508,8 +508,8 @@ define(function (require, exports, module) {
 
     /**
      * Sets the prefixes to use for line comments in this language or prints an error to the console.
-     * @param {!string|Array.<string>} prefix Prefix string or and array of prefix strings
-     *   to use for line comments (e.g. "//" or ["//", "#"])
+     * @param {!string|Array.<string>} prefix Prefix string or an array of prefix strings
+     *   to use for line comments (i.e. "//" or ["//", "#"])
      * @return {boolean} Whether the syntax was valid and set or not
      */
     Language.prototype.setLineCommentSyntax = function (prefix) {
@@ -631,7 +631,7 @@ define(function (require, exports, module) {
     Language.prototype.getAnalyzers = function () {
         // Return a copy
         return this._analyzers.concat();
-    }
+    };
 
     Language.prototype.addConverterToLanguage = function (languageId, converter) {
         if (languageId.getId) {

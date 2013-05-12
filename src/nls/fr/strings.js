@@ -25,6 +25,7 @@
 /*global define */
 
 define({
+    
     /**
      * Errors
      */
@@ -87,6 +88,11 @@ define({
 	"LIVE_DEV_STATUS_TIP_PROGRESS2": "Aperçu en direct : Initialisation\u2026",
 	"LIVE_DEV_STATUS_TIP_CONNECTED": "Déconnecter le module Aperçu en direct",
 	"LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "Aperçu en direct : cliquez ici pour déconnecter (enregistrez le fichier pour lancer la mise à jour).",
+
+	"LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS": "Aperçu en direct a été annulé car les outils de développeur du navigateur étaient ouverts",
+	"LIVE_DEV_DETACHED_TARGET_CLOSED": "Aperçu en direct a été annulé car la page était fermée dans le navigateur",
+	"LIVE_DEV_NAVIGATED_AWAY": "Aperçu en direct a été annulé car le navigateur a accédé à une page qui ne fait pas partie du projet actuel",
+	"LIVE_DEV_CLOSED_UNKNOWN_REASON": "Aperçu en direct a été annulé pour une raison inconnue ({0})",
     
 	"SAVE_CLOSE_TITLE": "Enregistrer les modifications",
 	"SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
@@ -131,12 +137,32 @@ define({
 	"LANGUAGE_SUBMIT": "Recharger {APP_NAME}",
 	"LANGUAGE_CANCEL": "Annuler",
 	"LANGUAGE_SYSTEM_DEFAULT": "Langue par défaut du système",
+    
+    /**
+     * Locales
+     */
+	"LOCALE_CS": "Tchèque",
+	"LOCALE_DE": "Allemand",
+	"LOCALE_EN": "Anglais",
+	"LOCALE_ES": "Espagnol",
+	"LOCALE_FR": "Français",
+	"LOCALE_IT": "Italien",
+	"LOCALE_JA": "Japonais",
+	"LOCALE_NB": "Norvégien",
+	"LOCALE_PL": "Polonais",
+	"LOCALE_PT_BR": "[6862304] !é=Portuguese, Brazil=!",
+	"LOCALE_PT_PT": "Portuguais",
+	"LOCALE_RU": "Russe",
+	"LOCALE_SV": "Suédois",
+	"LOCALE_TR": "Turc",
+	"LOCALE_ZH_CN": "[6862309] !é=Chinese, simplified=!",
 
     /**
      * ProjectManager
      */
 	"PROJECT_LOADING": "Chargement\u2026",
 	"UNTITLED": "Sans titre",
+	"WORKING_FILES": "Fichiers de travail",
 
     /**
      * Keyboard modifier names
@@ -156,7 +182,8 @@ define({
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_TABS": "Cliquez ici pour modifier la largeur du caractère de tabulation.",
 	"STATUSBAR_SPACES": "Espaces",
 	"STATUSBAR_TAB_SIZE": "Taille de tabulation",
-	"STATUSBAR_LINE_COUNT": "{0} lignes",
+	"STATUSBAR_LINE_COUNT_SINGULAR": "{0} ligne",
+	"STATUSBAR_LINE_COUNT_PLURAL": "{0} lignes",
 
     /**
      * Command Name Constants
@@ -178,6 +205,7 @@ define({
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
 	"CMD_FILE_RENAME": "Renommer",
 	"CMD_INSTALL_EXTENSION": "Installer une extension\u2026",
+	"CMD_EXTENSION_MANAGER": "Extension Manager\u2026",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
 	"CMD_EXIT": "Quitter",
@@ -205,6 +233,8 @@ define({
 	"CMD_BLOCK_COMMENT": "Commenter les blocs/Annuler les commentaires",
 	"CMD_LINE_UP": "Déplacer la ligne vers le haut",
 	"CMD_LINE_DOWN": "Déplacer la ligne vers le bas",
+	"CMD_OPEN_LINE_ABOVE": "Ouvrir une ligne au-dessus",
+	"CMD_OPEN_LINE_BELOW": "Ouvrir une ligne en dessous",
 	"CMD_TOGGLE_CLOSE_BRACKETS": "Fermeture automatique des accolades",
     
     // View menu commands
@@ -228,9 +258,11 @@ define({
 	"NAVIGATE_MENU": "Naviguer",
 	"CMD_QUICK_OPEN": "Ouverture rapide",
 	"CMD_GOTO_LINE": "Atteindre la ligne",
-	"CMD_GOTO_DEFINITION": "Atteindre la définition",
+	"CMD_GOTO_DEFINITION": "Accès rapide à la définition",
+	"CMD_JUMPTO_DEFINITION": "Accéder à la définition",
 	"CMD_JSLINT_FIRST_ERROR": "Aller à la première erreur JSLint",
 	"CMD_TOGGLE_QUICK_EDIT": "Edition rapide",
+	"CMD_TOGGLE_QUICK_DOCS": "Documentation rapide",
 	"CMD_QUICK_EDIT_PREV_MATCH": "Correspondance précédente",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "Correspondance suivante",
 	"CMD_NEXT_DOC": "Document suivant",
@@ -280,20 +312,20 @@ define({
 	"RELAUNCH_CHROME": "Relancer Chrome",
 	"INSTALL": "Installer",
 	"ABOUT": "A propos",
-	"APP_NAME": "Brackets",
 	"CLOSE": "Fermer",
 	"ABOUT_TEXT_LINE1": "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
 	"ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty_fr/\">http://www.adobe.com/go/thirdparty_fr/</a> et sont incluses dans le présent document à titre de référence.",
 	"ABOUT_TEXT_LINE4": "La documentation et la source sont disponibles à l’adresse <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>.",
 	"ABOUT_TEXT_LINE5": "Développé avec \u2764 et JavaScript par :",
 	"ABOUT_TEXT_LINE6": "De nombreux contributeurs (information indisponible pour le moment).",
+	"ABOUT_TEXT_WEB_PLATFORM_DOCS": "Web Platform Docs et le logo graphique Web Platform sont mis à disposition sous licence Creative Commons Attribution, <a class=\"clickable-link\" data-href=\"http://creativecommons.org/licenses/by/3.0/\">CC-BY 3.0 Unported.</a>.",
 	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",
 	"UPDATE_AVAILABLE_TITLE": "Mise à jour disponible",
 	"UPDATE_MESSAGE": "Une nouvelle version de {APP_NAME} est disponible. Voici quelques-unes des nouvelles fonctionnalités proposées :",
 	"GET_IT_NOW": "Télécharger",
 	"PROJECT_SETTINGS_TITLE": "Paramètres de projet pour : {0}",
 	"PROJECT_SETTING_BASE_URL": "URL de base de l’Aperçu en direct ",
-	"PROJECT_SETTING_BASE_URL_HINT": "(pour utiliser un serveur local, spécifiez l’URL)",
+	"PROJECT_SETTING_BASE_URL_HINT": "[6499087] !é=To use a local server, enter a url like http://localhost:8000/=!",
 	"BASEURL_ERROR_INVALID_PROTOCOL": "Le protocole {0} n’est pas pris en charge par l’Aperçu en direct. Veuillez utiliser une adresse de type http ou https.",
 	"BASEURL_ERROR_SEARCH_DISALLOWED": "L’URL de base ne peut pas contenir de paramètres de recherche tels que \"{0}\".",
 	"BASEURL_ERROR_HASH_DISALLOWED": "L’URL de base ne peut pas contenir de signe dièse (\"{0}\").",
@@ -302,7 +334,7 @@ define({
     
     // Extension Management strings
 	"INSTALL_EXTENSION_TITLE": "Installer l’extension",
-	"INSTALL_EXTENSION_LABEL": "URL de l’extension",
+	"INSTALL_EXTENSION_LABEL": "URL de l’extension ",
 	"INSTALL_EXTENSION_HINT": "URL du fichier zip de l’extension ou du référentiel GitHub",
 	"INSTALLING_FROM": "Installation de l’extension depuis·{0}\u2026",
 	"INSTALL_SUCCEEDED": "Installation réussie.",
@@ -317,10 +349,11 @@ define({
 	"BAD_PACKAGE_NAME": "{0} n’est pas un nom de pack valide.",
 	"MISSING_PACKAGE_VERSION": "Le fichier package.json n’indique pas la version du pack.",
 	"INVALID_VERSION_NUMBER": "Le numéro de version du pack ({0}) n’est pas valide.",
-	"API_NOT_COMPATIBLE": "Cette extension n’est pas compatible avec cette version de Brackets. Elle a été installée dans le dossier contenant les extensions désactivées.",
+	"INVALID_BRACKETS_VERSION": "La chaîne de compatibilité Brackets {{0}} n’est pas valide.",
+	"DISALLOWED_WORDS": "Le champ {{0}} ne peut pas contenir les mots {{1}}.",
+	"API_NOT_COMPATIBLE": "L’extension n’est pas compatible avec cette version de l’application {APP_NAME}. Elle a été installée dans le dossier contenant les extensions désactivées.",
 	"MISSING_MAIN": "Le pack ne contient pas de fichier main.js.",
 	"ALREADY_INSTALLED": "Une extension portant le même nom est déjà installée. La nouvelle extension a été installée dans le dossier contenant les extensions désactivées.",
-	"NO_DISABLED_DIRECTORY": "Impossible d’enregistrer l’extension dans extensions/disabled car ce dossier n’existe pas.",
 	"DOWNLOAD_ID_IN_USE": "Erreur interne : l’ID de téléchargement est déjà utilisé.",
 	"NO_SERVER_RESPONSE": "Impossible de se connecter au serveur.",
 	"BAD_HTTP_STATUS": "Fichier introuvable sur le serveur (HTTP {0}).",
@@ -330,7 +363,23 @@ define({
 	"UNSUPPORTED_PROTOCOL": "L’URL doit commencer par http ou https.",
 	"UNKNOWN_ERROR": "Erreur interne inconnue.",
     // For NOT_FOUND_ERR, see generic strings above
+	"EXTENSION_MANAGER_TITLE": "Extension Manager",
+	"EXTENSION_MANAGER_ERROR_LOAD": "Impossible d’accéder au registre de l’extension. Réessayez ultérieurement.",
+	"INSTALL_FROM_URL": "Installer à partir de l’URL\u2026",
+	"EXTENSION_AUTHOR": "Auteur",
+	"EXTENSION_DATE": "Date",
+	"EXTENSION_INCOMPATIBLE_NEWER": "Cette extension nécessite une version plus récente de l’application {APP_NAME}.",
+	"EXTENSION_INCOMPATIBLE_OLDER": "Cette extension n’est actuellement compatible qu’avec les versions antérieures de l’application {APP_NAME}.",
+	"EXTENSION_NO_DESCRIPTION": "Aucune description",
+	"EXTENSION_KEYWORDS": "Mots-clés",
+	"EXTENSION_INSTALLED": "Installée",
+	"EXTENSION_SEARCH_PLACEHOLDER": "Rechercher",
+	"EXTENSION_MORE_INFO_LINK": "Plus",
+	"BROWSE_EXTENSIONS": "Parcourir les extensions",
     
+    // extensions/default/QuickView 
+	"CMD_ENABLE_QUICK_VIEW": "Affichage rapide au survol",
+
     // extensions/default/JSLint
 	"JSLINT_ERRORS": "Erreurs JSLint",
 	"JSLINT_ERROR_INFORMATION": "1 erreur JSLint",
@@ -345,5 +394,8 @@ define({
 	"COLOR_EDITOR_HEX_BUTTON_TIP": "Format Hex",
 	"COLOR_EDITOR_HSLA_BUTTON_TIP": "Format HSLa",
 	"COLOR_EDITOR_USED_COLOR_TIP_SINGULAR": "{0} (utilisé {1} fois)",
-	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} (utilisé {1} fois)"
+	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} (utilisé {1} fois)",
+    
+    // extensions/default/WebPlatformDocs
+	"DOCS_MORE_LINK": "En savoir plus"
 });
