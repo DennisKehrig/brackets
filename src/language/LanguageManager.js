@@ -113,7 +113,7 @@ define(function (require, exports, module) {
         _fileExtensionToLanguageMap = {},
         _fileNameToLanguageMap      = {},
         _modeToLanguageMap          = {},
-        ready;
+        _ready;
     
     
     // Helper functions
@@ -764,12 +764,12 @@ define(function (require, exports, module) {
  
     // Load the default languages
     _defaultLanguagesJSON = JSON.parse(_defaultLanguagesJSON);
-    ready = Async.doInParallel(Object.keys(_defaultLanguagesJSON), function (key) {
+    _ready = Async.doInParallel(Object.keys(_defaultLanguagesJSON), function (key) {
         return defineLanguage(key, _defaultLanguagesJSON[key]);
     }, false);
     
     // Get the object for HTML
-    ready.always(function () {
+    _ready.always(function () {
         var html = getLanguage("html");
         
         // The htmlmixed mode uses the xml mode internally for the HTML parts, so we map it to HTML
@@ -785,7 +785,7 @@ define(function (require, exports, module) {
     });
     
     // Public methods
-    exports.ready                   = ready;
+    exports.ready                   = _ready.promise();
     exports.defineLanguage          = defineLanguage;
     exports.getLanguage             = getLanguage;
     exports.getLanguageForPath      = getLanguageForPath;
