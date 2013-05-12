@@ -63,12 +63,20 @@ define(function (require, exports, module) {
         return projectRoot.fullPath + url.slice(baseUrl.length);
     }
 
-    function registerFilterForFiles(files) {
-        var relativePaths = files.map(function (path) {
-            return "/" + ProjectManager.makeProjectRelativeIfPossible(path);
+    function _makePathsRelative(paths) {
+        return paths.map(function (path) {
+            return "/" + encodeURI(ProjectManager.makeProjectRelativeIfPossible(path));
         });
+    }
 
-        _serverProvider.setRequestFilterPaths(relativePaths);
+    function addFilterForFiles(files) {
+        var relativePaths = _makePathsRelative(files);
+        _serverProvider.addRequestFilterPaths(relativePaths);
+    }
+
+    function removeFilterForFiles(files) {
+        var relativePaths = _makePathsRelative(files);
+        _serverProvider.removeRequestFilterPaths(relativePaths);
     }
 
     _ready = new $.Deferred();
@@ -82,7 +90,6 @@ define(function (require, exports, module) {
             $(_serverProvider).off(".lesssupport");
             $(_serverProvider).on("request.lesssupport", onRequest);
 
-            console.log("@Provider");
             _ready.resolve();
         }
         
@@ -97,8 +104,9 @@ define(function (require, exports, module) {
         tryUntilReady();
     });
 
-    exports.ready                  = _ready.promise();
-    exports.urlForPath             = urlForPath;
-    exports.pathForUrl             = pathForUrl;
-    exports.registerFilterForFiles = registerFilterForFiles;
+    exports.ready                = _ready.promise();
+    exports.urlForPath           = urlForPath;
+    exports.pathForUrl           = pathForUrl;
+    exports.addFilterForFiles    = addFilterForFiles;
+    exports.removeFilterForFiles = removeFilterForFiles;
 });

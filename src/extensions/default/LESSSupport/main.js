@@ -49,7 +49,6 @@ define(function (require, exports, module) {
     });
 
     $.when(_languageReady, analyzer.ready).done(function () {
-        console.log("@Language + analyzer");
         var language = LanguageManager.getLanguage(languageId);
 
         language.addAnalyzer(analyzer);
@@ -58,7 +57,6 @@ define(function (require, exports, module) {
         // Register the updater with Chrome
         // This should occur after the analyzer is ready because the updater relies on it
         ClientManager.waitUntilClientReady("chrome").done(function (chrome) {
-            console.log("@Chrome");
             chrome.addUpdaterForLanguage(languageId, updater);
         });
     });

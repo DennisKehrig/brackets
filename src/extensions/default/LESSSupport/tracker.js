@@ -161,7 +161,7 @@ define(function (require, exports, module) {
                     context.discardCurrentUpdate = false;
                     performUpdate();
                 } else {
-                    // console.log("Update complete");
+                    // console.log("Update " + (this.state() === "resolved" ? "complete" : "failed"), arguments);
                     context.updateInProgress = false;
                 }
             });
@@ -300,6 +300,8 @@ define(function (require, exports, module) {
                 documents = [],
                 documentsReady;
 
+            provider.removeFilterForFiles(removedFiles);
+
             documentsReady = Async.doInParallel(addedFiles, function (path) {
                 // This will fail for images
                 return DocumentManager.getDocumentForPath(path)
@@ -311,7 +313,7 @@ define(function (require, exports, module) {
             }, false);
 
             documentsReady.always(function () {
-                provider.registerFilterForFiles(paths);
+                provider.addFilterForFiles(paths);
                 // Do an initial compilation to track references
                 // This allows us to update main.less if the imported shared.less is modified
                 documents.forEach(_analyzeDocument);
@@ -322,8 +324,6 @@ define(function (require, exports, module) {
     function onProviderReady() {
         _registerFilterForNewFilesInProject();
         $(ProjectManager).on("projectOpen projectFilesChange", _registerFilterForNewFilesInProject);
-
-        console.log("@Tracker");
     }
 
     function contextForPath(path) {

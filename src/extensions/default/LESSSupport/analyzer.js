@@ -142,7 +142,6 @@ define(function (require, exports, module) {
         // Since Brackets is loaded from a file URL, it is the most important one.
         _less.fileAsync = true;
 
-        console.log("@Analyzer");
         _ready.resolve();
     });
 

@@ -242,7 +242,7 @@ define(function (require, exports, module) {
                     });
                     
                     // listen for /index.txt requests
-                    waitsForDone(nodeConnection.domains.staticServer.setRequestFilterPaths(path, ["/index.txt"]));
+                    waitsForDone(nodeConnection.domains.staticServer.addRequestFilterPaths(path, ["/index.txt"]));
 
                     // set a custom timeout
                     waitsForDone(nodeConnection.domains.staticServer._setRequestFilterTimeout(timeout));
@@ -299,7 +299,7 @@ define(function (require, exports, module) {
                     });
                     
                     // listen for /index.txt requests
-                    waitsForDone(nodeConnection.domains.staticServer.setRequestFilterPaths(path, ["/index.txt"]));
+                    waitsForDone(nodeConnection.domains.staticServer.addRequestFilterPaths(path, ["/index.txt"]));
                 });
 
                 runs(function () {
@@ -343,7 +343,7 @@ define(function (require, exports, module) {
                     });
                     
                     // listen for /index.txt requests
-                    waitsForDone(nodeConnection.domains.staticServer.setRequestFilterPaths(path, ["/index.txt"]));
+                    waitsForDone(nodeConnection.domains.staticServer.addRequestFilterPaths(path, ["/index.txt"]));
                 });
 
                 runs(function () {
@@ -389,7 +389,7 @@ define(function (require, exports, module) {
                     });
                     
                     // listen for /index.txt requests
-                    waitsForDone(nodeConnection.domains.staticServer.setRequestFilterPaths(path, ["/index.txt"]));
+                    waitsForDone(nodeConnection.domains.staticServer.addRequestFilterPaths(path, ["/index.txt"]));
                 });
 
                 runs(function () {

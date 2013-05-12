@@ -171,16 +171,32 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Defines a set of paths from a server's root path to watch and fire "request" events for.
+     * Adds a set of paths from a server's root path to watch and fire "request" events for.
      * 
      * @param {Array.<string>} paths An array of root-relative paths to watch.
      *     Each path should begin with a forward slash "/".
      */
-    StaticServerProvider.prototype.setRequestFilterPaths = function (paths) {
+    StaticServerProvider.prototype.addRequestFilterPaths = function (paths) {
         var self = this;
 
         if (_nodeConnection.connected()) {
-            return _nodeConnection.domains.staticServer.setRequestFilterPaths(self.root, paths);
+            return _nodeConnection.domains.staticServer.addRequestFilterPaths(self.root, paths);
+        }
+
+        return new $.Deferred().reject().promise();
+    };
+
+    /**
+     * Removes a set of paths from a server's root path to watch and fire "request" events for.
+     * 
+     * @param {Array.<string>} paths An array of root-relative paths to watch.
+     *     Each path should begin with a forward slash "/".
+     */
+    StaticServerProvider.prototype.removeRequestFilterPaths = function (paths) {
+        var self = this;
+
+        if (_nodeConnection.connected()) {
+            return _nodeConnection.domains.staticServer.removeRequestFilterPaths(self.root, paths);
         }
 
         return new $.Deferred().reject().promise();

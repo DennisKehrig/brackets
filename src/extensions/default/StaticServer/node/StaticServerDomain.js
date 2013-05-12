@@ -294,25 +294,40 @@
     
     /**
      * @private
-     * Defines a set of paths from a server's root path to watch and fire "request" events for.
+     * Adds a set of paths from a server's root path to watch and fire "request" events for.
      *
      * @param {string} path The absolute path whose server we should watch
      * @param {Array.<string>} paths An array of root-relative paths to watch.
      *     Each path should begin with a forward slash "/".
      */
-    function _cmdSetRequestFilterPaths(root, paths) {
+    function _cmdAddRequestFilterPaths(root, paths) {
         var rootPath = normalizeRootPath(root),
             pathKey  = getPathKey(root),
-            rewritePaths = {};
+            rewritePaths = _rewritePaths[pathKey];
 
-        // reset list of filtered paths for each call to setRequestFilterPaths
-        _rewritePaths[pathKey] = rewritePaths;
-        
         paths.forEach(function (path) {
             rewritePaths[path] = pathJoin(root, path);
         });
     }
-    
+
+    /**
+     * @private
+     * Removes a set of paths from a server's root path to watch and fire "request" events for.
+     *
+     * @param {string} path The absolute path whose server we should watch
+     * @param {Array.<string>} paths An array of root-relative paths to watch.
+     *     Each path should begin with a forward slash "/".
+     */
+    function _cmdRemoveRequestFilterPaths(root, paths) {
+        var rootPath = normalizeRootPath(root),
+            pathKey  = getPathKey(root),
+            rewritePaths = _rewritePaths[pathKey];
+
+        paths.forEach(function (path) {
+            delete rewritePaths[path];
+        });
+    }
+
     /**
      * @private
      * Overrides the server response from static middleware with the provided
@@ -405,10 +420,30 @@
         );
         _domainManager.registerCommand(
             "staticServer",
-            "setRequestFilterPaths",
-            _cmdSetRequestFilterPaths,
+            "addRequestFilterPaths",
+            _cmdAddRequestFilterPaths,
             false,
-            "Defines a set of paths from a server's root path to watch and fire 'requestFilter' events for.",
+            "Adds a set of paths from a server's root path to watch and fire 'requestFilter' events for.",
+            [
+                {
+                    name: "root",
+                    type: "string",
+                    description: "absolute filesystem path for root of server"
+                },
+                {
+                    name: "paths",
+                    type: "Array",
+                    description: "path to notify"
+                }
+            ],
+            []
+        );
+        _domainManager.registerCommand(
+            "staticServer",
+            "removeRequestFilterPaths",
+            _cmdRemoveRequestFilterPaths,
+            false,
+            "Removes a set of paths from a server's root path to watch and fire 'requestFilter' events for.",
             [
                 {
                     name: "root",
