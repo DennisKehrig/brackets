@@ -76,6 +76,13 @@ maxerr: 50, node: true */
     
     /**
      * @private
+     * @type {Object.<string, int>}
+     * A map from root paths to a number to use as the next request ID.
+     */
+    var _nextRequestIds = {};
+
+    /**
+     * @private
      * @type {Object.<string, {Object.<string>}}
      * A map from root paths to relative paths to rewrite
      */
@@ -119,6 +126,7 @@ maxerr: 50, node: true */
 
         // create a new map for this server's requests
         _requests[pathKey] = {};
+        _nextRequestIds[pathKey] = 1;
         
         function requestRoot(server, cb) {
             address = server.address();
@@ -148,12 +156,13 @@ maxerr: 50, node: true */
             }
             
             // pause the request and wait for listeners to possibly respond
-            var pause = utils.pause(req);
+            var pause = utils.pause(req),
+                requestId = _nextRequestIds[pathKey]++;
             
             function resume(doNext) {
                 // delete the callback after it's used or we hit the timeout.
                 // if this path is requested again, a new callback is generated.
-                delete _requests[pathKey][location.pathname];
+                delete _requests[pathKey][requestId];
 
                 // pass request to next middleware
                 if (doNext) {
@@ -162,11 +171,13 @@ maxerr: 50, node: true */
 
                 pause.resume();
             }
-            
+
             // map request pathname to response callback
-            _requests[pathKey][location.pathname] = function (resData) {
+            _requests[pathKey][requestId] = function (resData) {
                 // clear timeout immediately when this callback is called
                 clearTimeout(timeoutId);
+
+                // console.warn("Received response for " + location.pathname);
 
                 // response data is optional
                 if (resData) {
@@ -194,6 +205,7 @@ maxerr: 50, node: true */
             location.root = path;
 
             var request = {
+                id:         requestId,
                 headers:    req.headers,
                 location:   location
             };
@@ -202,7 +214,7 @@ maxerr: 50, node: true */
             _domainManager.emitEvent("staticServer", "requestFilter", [request]);
             
             // set a timeout if custom responses are not returned
-            timeoutId = setTimeout(function () { resume(true); }, _filterRequestTimeout);
+            timeoutId = setTimeout(function () { console.warn("Timeout for " + location.pathname); resume(true); }, _filterRequestTimeout);
         }
         
         app = connect();
@@ -304,18 +316,19 @@ maxerr: 50, node: true */
      * Overrides the server response from static middleware with the provided
      * response data. This should be called only in response to a filtered request.
      *
-     * @param {string} path The absolute path of the server
      * @param {string} root The relative path of the file beginning with a forward slash "/"
+     * @param {string} path The absolute path of the server
+     * @param {integer} requestId The ID of the request the response is for
      * @param {Object} resData Response data to use
      */
-    function _cmdWriteFilteredResponse(root, path, resData) {
+    function _cmdWriteFilteredResponse(root, path, requestId, resData) {
         var pathKey  = getPathKey(root),
-            callback = _requests[pathKey][path];
+            callback = _requests[pathKey][requestId];
 
         if (callback) {
             callback(resData);
         } else {
-            console.warn("writeFilteredResponse: Missing callback for %s. This command must only be called after a requestFilter event has fired for a path.", pathJoin(root, path));
+            console.warn("writeFilteredResponse: Missing callback %d for %s. This command must only be called after a requestFilter event has fired for a path.", requestId, pathJoin(root, path));
         }
     }
 

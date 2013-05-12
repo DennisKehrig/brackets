@@ -23,43 +23,41 @@
 
 
 /*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
-/*global define, brackets, $ */
+/*global define, brackets, $, PathUtils */
 
 define(function (require, exports, module) {
     "use strict";
 
-    var LanguageManager = brackets.getModule("language/LanguageManager"),
-        ClientManager   = brackets.getModule("LiveDevelopment/ClientManager"),
-        AppInit         = brackets.getModule("utils/AppInit");
+    var ClientManager   = brackets.getModule("LiveDevelopment/ClientManager"),
+        LiveDevelopment = brackets.getModule("LiveDevelopment/LiveDevelopment"),
+        Inspector       = brackets.getModule("LiveDevelopment/Inspector/Inspector");
 
-    var analyzer  = require("analyzer"),
-        converter = require("converter"),
-        provider  = require("provider"),
-        tracker   = require("tracker"),
-        updater   = require("updater");
+    var _session;
 
-    var languageId = "less";
-
-    var _languageReady = LanguageManager.defineLanguage(languageId, {
-        name: "LESS",
-        mode: "less",
-        fileExtensions: ["less"],
-        blockComment: ["/*", "*/"],
-        lineComment: ["//"]
-    });
-
-    $.when(_languageReady, analyzer.ready).done(function () {
-        console.log("@Language + analyzer");
-        var language = LanguageManager.getLanguage(languageId);
-
-        language.addAnalyzer(analyzer);
-        language.addConverterToLanguage("css", converter);
-        
-        // Register the updater with Chrome
-        // This should occur after the analyzer is ready because the updater relies on it
-        ClientManager.waitUntilClientReady("chrome").done(function (chrome) {
-            console.log("@Chrome");
-            chrome.addUpdaterForLanguage(languageId, updater);
+    function onConnect() {
+        chrome.connect().done(function(session) {
+            _session = session;
         });
+    }
+    
+    function onDisconnect() {
+        chrome.disconnect(_session).done(function () {
+        });
+    }
+
+    var chrome = ClientManager.createClient({
+        name: "Google Chrome"
     });
+
+    chrome.addSessionInitializer(function (session) {
+        session.agents    = LiveDevelopment.agents;
+        session.Inspector = Inspector;
+
+        return new $.Deferred().resolve().promise();
+    });
+    
+    $(Inspector).on("connect", onConnect);
+    $(Inspector).on("disconnect", onDisconnect);
+
+    ClientManager.registerClient("chrome", chrome);
 });

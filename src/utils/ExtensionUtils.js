@@ -80,16 +80,29 @@ define(function (require, exports, module) {
      * @return {!$.Promise} A promise object that is resolved with CSS code if the LESS code can be parsed
      */
     function parseLessCode(code, url) {
-        var compile = LanguageManager.getLanguage("less").getDefaultCompilerToLanguage("css");
-
-        return compile({
-            getText: function () {
-                return code;
-            },
-            file: {
-                fullPath: url
+        var result = new $.Deferred(),
+            options;
+        
+        if (url) {
+            var dir  = url.slice(0, url.lastIndexOf("/") + 1),
+                file = url.slice(dir.length);
+            
+            options = {
+                filename: file,
+                paths:    [dir]
+            };
+        }
+        
+        var parser = new less.Parser(options);
+        parser.parse(code, function onParse(err, tree) {
+            if (err) {
+                result.reject(err);
+            } else {
+                result.resolve(tree.toCSS());
             }
         });
+        
+        return result.promise();
     }
     
     /**

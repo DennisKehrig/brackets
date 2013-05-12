@@ -190,10 +190,10 @@ define(function (require, exports, module) {
      * @private
      * Callback for "request" event handlers to override the HTTP ServerResponse.
      */
-    function _send(location) {
+    function _send(location, requestId) {
         return function (resData) {
             if (_nodeConnection.connected()) {
-                return _nodeConnection.domains.staticServer.writeFilteredResponse(location.root, location.pathname, resData);
+                return _nodeConnection.domains.staticServer.writeFilteredResponse(location.root, location.path, requestId, resData);
             }
 
             return new $.Deferred().reject().promise();
@@ -251,9 +251,10 @@ define(function (require, exports, module) {
                     $(_nodeConnection).on("staticServer.requestFilter", function (event, request) {
                         /* create result object to pass to event handlers */
                         var requestData = {
+                            id          : request.id,
                             headers     : request.headers,
                             location    : request.location,
-                            send        : _send(request.location)
+                            send        : _send(request.location, request.id)
                         };
 
                         $staticServerProvider.triggerHandler("request", [requestData]);

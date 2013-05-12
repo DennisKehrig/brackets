@@ -188,7 +188,7 @@ define(function (require, exports, module) {
 
 
         // Load default languages and live development clients
-        $.when([LanguageManager.ready, ClientManager.ready]).always(function () {
+        LanguageManager.ready.always(function () {
             // Load all extensions. This promise will complete even if one or more
             // extensions fail to load.
             var extensionLoaderPromise = ExtensionLoader.init(params.get("extensions"));

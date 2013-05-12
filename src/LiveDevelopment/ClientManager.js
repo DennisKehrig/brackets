@@ -30,18 +30,19 @@ define(function (require, exports, module) {
 
 
     // Dependencies
-    var Async               = require("utils/Async"),
-        ValidationUtils     = require("utils/ValidationUtils"),
-        _defaultClientsJSON = require("text!LiveDevelopment/clients.json");
+    var Async           = require("utils/Async"),
+        ValidationUtils = require("utils/ValidationUtils");
 
 
     // State
-    var _clients = {},
-        ready;
+    var _clients         = {},
+        _promisedClients = {},
+        _sessions        = [];
 
     
     function Client() {
-
+        this._updatersForLanguage = {};
+        this._sessionInitializers = [];
     }
 
     /** @type {string} Identifier for this client */
@@ -50,6 +51,10 @@ define(function (require, exports, module) {
     /** @type {string} Human-readable name of this client */
     Client.prototype._name = null;
 
+    Client.prototype._updatersForLanguage = null;
+
+    Client.prototype._sessionInitializers = null;
+    
     /**
      * Returns the identifier for this client.
      * @return {string} The identifier
@@ -100,28 +105,130 @@ define(function (require, exports, module) {
         return true;
     };
 
-    // Load the default clients
-    _defaultClientsJSON = JSON.parse(_defaultClientsJSON);
-    ready = Async.doInParallel(Object.keys(_defaultClientsJSON), function (key) {
-        return defineClient(key, _defaultClientsJSON[key]);
-    }, false);
-
-
-    function defineClient(id, definition) {
-        var result = new $.Deferred();
-
-        var client = new Client(),
-            name   = definition.name;
-        
-        if (!client._setId(id) || !client._setName(name)) {
-            result.reject();
-        } else {
-            result.resolve(client);
+    Client.prototype.addUpdaterForLanguage = function (languageId, updater) {
+        if (languageId.getId) {
+            languageId = languageId.getId();
         }
-        
+
+        var updaters = this._updatersForLanguage[languageId];
+        if (!updaters) {
+            updaters = this._updatersForLanguage[languageId] = [];
+        }
+        updaters.push(updater);
+    };
+
+    Client.prototype.getUpdatersForLanguage = function (languageId) {
+        if (languageId.getId) {
+            languageId = languageId.getId();
+        }
+        // Return a copy
+        return (this._updatersForLanguage[languageId] || []).concat();
+    };
+
+    Client.prototype.addSessionInitializer = function (initializer) {
+        this._sessionInitializers.push(initializer);
+    };
+
+    Client.prototype.connect = function () {
+        var result  = new $.Deferred(),
+            session = { client: this },
+            that    = this,
+            ready;
+
+        ready = Async.doInParallel(this._sessionInitializers, function (initializer) {
+            return initializer.call(that, session);
+        }, true);
+
+        ready
+            .fail(result.reject)
+            .done(function () {
+                $(that).triggerHandler("connect", [session]);
+                result.resolve(session);
+            });
+
         return result.promise();
+    };
+
+    Client.prototype.disconnect = function (session) {
+        var result = new $.Deferred();
+        
+        $(this).triggerHandler("disconnect", [session]);
+
+        return result.resolve().promise();
+    };
+
+
+    function onClientConnect(e, session) {
+        _sessions.push(session);
     }
 
-    exports.ready        = ready;
-    exports.defineClient = defineClient;
+    function onClientDisconnect(e, session) {
+        var index = _sessions.indexOf(session);
+        if (index > -1) {
+            _sessions.splice(index, 1);
+        }
+    }
+
+
+    function getClient(id) {
+        return _clients[id];
+    }
+
+    function createClient(definition) {
+        var client = new Client();
+        
+        if (!client._setName(definition.name)) {
+            return;
+        }
+        
+        return client;
+    }
+
+    function registerClient(id, client) {
+        if (_clients[id]) {
+            console.error("There already is a client with the ID " + id);
+            return false;
+        }
+        
+        if (!client._setId(id)) {
+            return false;
+        }
+
+        _clients[id] = client;
+
+        $(client).on("connect", onClientConnect);
+        $(client).on("disconnect", onClientDisconnect);
+
+        var deferred = _promisedClients[id];
+        if (deferred) {
+            delete _promisedClients[id];
+            deferred.resolve(client);
+        }
+
+        return true;
+    }
+
+    function waitUntilClientReady(id) {
+        var client = _clients[id];
+        if (client) {
+            return new $.Deferred().resolve(client).promise();
+        }
+
+        var deferred = _promisedClients[id];
+        if (!deferred) {
+            deferred = _promisedClients[id] = new $.Deferred();
+        }
+        return deferred.promise();
+    }
+
+    function getSessions() {
+        // Return a copy
+        return _sessions.concat();
+    }
+
+    exports.getClient            = getClient;
+    exports.createClient         = createClient;
+    exports.registerClient       = registerClient;
+    exports.waitUntilClientReady = waitUntilClientReady;
+    exports.getSessions          = getSessions;
 });

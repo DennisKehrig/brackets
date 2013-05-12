@@ -28,38 +28,42 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var LanguageManager = brackets.getModule("language/LanguageManager"),
-        ClientManager   = brackets.getModule("LiveDevelopment/ClientManager"),
-        AppInit         = brackets.getModule("utils/AppInit");
+    var analyzer = require("analyzer");
 
-    var analyzer  = require("analyzer"),
-        converter = require("converter"),
-        provider  = require("provider"),
-        tracker   = require("tracker"),
-        updater   = require("updater");
+    function convert(contents, url) {
+        var result = new $.Deferred();
 
-    var languageId = "less";
+        analyzer.analyze(contents, url)
+            .fail(result.reject)
+            .done(function (analysis) {
+                var i,
+                    input,
+                    output,
+                    urls;
 
-    var _languageReady = LanguageManager.defineLanguage(languageId, {
-        name: "LESS",
-        mode: "less",
-        fileExtensions: ["less"],
-        blockComment: ["/*", "*/"],
-        lineComment: ["//"]
-    });
+                // Gather input files
+                input = {};
 
-    $.when(_languageReady, analyzer.ready).done(function () {
-        console.log("@Language + analyzer");
-        var language = LanguageManager.getLanguage(languageId);
+                input.main = { url: url, contents: contents };
+                urls = analysis.importedUrls;
+                for (i = 0; i < urls.length; i++) {
+                    input["import" + i] = { url: urls[i] };
+                }
+                
+                // Create output files
+                output = {
+                    main: {
+                        url:          url.replace(/[^\.]*$/, "css"),
+                        lastModified: analysis.date,
+                        content:      analysis.parseTree.toCSS()
+                    }
+                };
 
-        language.addAnalyzer(analyzer);
-        language.addConverterToLanguage("css", converter);
+                result.resolve({ input: input, output: output });
+            });
         
-        // Register the updater with Chrome
-        // This should occur after the analyzer is ready because the updater relies on it
-        ClientManager.waitUntilClientReady("chrome").done(function (chrome) {
-            console.log("@Chrome");
-            chrome.addUpdaterForLanguage(languageId, updater);
-        });
-    });
+        return result.promise();
+    }
+
+    exports.convert = convert;
 });

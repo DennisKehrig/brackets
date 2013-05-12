@@ -261,7 +261,8 @@ define(function (require, exports, module) {
         this._fileNames         = [];
         this._modeToLanguageMap = {};
         this._lineCommentSyntax = [];
-        this._compilers         = {};
+        this._analyzers         = [];
+        this._converters        = {};
     }
     
     
@@ -289,8 +290,11 @@ define(function (require, exports, module) {
     /** @type {{ prefix: string, suffix: string }} Block comment syntax */
     Language.prototype._blockCommentSyntax = null;
 
-    /** @type {Object.<string,Array>} List of compilers per target language */
-    Language.prototype._compilers = null;
+    /** @type {Array.<object>} List of generic analyzers that provide information about a file */
+    Language.prototype._analyzers = null;
+    
+    /** @type {Object.<string,Array>} List of converters per target language */
+    Language.prototype._converters = null;
     
     /**
      * Returns the identifier for this language.
@@ -620,8 +624,17 @@ define(function (require, exports, module) {
         }
     };
 
-    Language.prototype.addCompiler = function (languageId, compiler) {
-        if (languageId instanceof Language) {
+    Language.prototype.addAnalyzer = function (analyzer) {
+        this._analyzers.push(analyzer);
+    };
+
+    Language.prototype.getAnalyzers = function () {
+        // Return a copy
+        return this._analyzers.concat();
+    }
+
+    Language.prototype.addConverterToLanguage = function (languageId, converter) {
+        if (languageId.getId) {
             languageId = languageId.getId();
         }
         if (!_languages[languageId]) {
@@ -629,15 +642,15 @@ define(function (require, exports, module) {
             return;
         }
 
-        if (!this._compilers[languageId]) {
-            this._compilers[languageId] = [];
+        if (!this._converters[languageId]) {
+            this._converters[languageId] = [];
         }
 
-        this._compilers[languageId].push(compiler);
+        this._converters[languageId].push(converter);
     };
 
-    Language.prototype.getCompilersToLanguage = function(languageId) {
-        if (languageId instanceof Language) {
+    Language.prototype.getConvertersToLanguage = function(languageId) {
+        if (languageId.getId) {
             languageId = languageId.getId();
         }
         if (!_languages[languageId]) {
@@ -646,12 +659,12 @@ define(function (require, exports, module) {
         }
 
         // Return a copy of the array
-        return (this._compilers[languageId] || []).concat();
+        return (this._converters[languageId] || []).concat();
     };
 
-    Language.prototype.getCompilerToLanguage = function(languageId) {
-        var compilers = this.getCompilersToLanguage(languageId);
-        return compilers[0];
+    Language.prototype.getConverterToLanguage = function(languageId) {
+        var converters = this.getConvertersToLanguage(languageId);
+        return converters[0];
     };
 
 
